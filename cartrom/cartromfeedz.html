@@ -148,9 +148,32 @@
     </form>
 
     <script>
-        document.getElementById('questionnaire-form').addEventListener('submit', function(event) {
-            event.preventDefault(); // Evita o envio padrão
+      // Função para formatar a data como 'YYYY-MM-DD'
+      function formatDate(date) {
+            let year = date.getFullYear();
+            let month = String(date.getMonth() + 1).padStart(2, '0');
+            let day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
+        // Função para verificar se o usuário já respondeu hoje
+        function hasAnsweredToday() {
+            const lastResponseDate = localStorage.getItem('lastResponseDate');
+            const today = formatDate(new Date());
+
+            return lastResponseDate === today; // Retorna true se as datas coincidirem
+        }
+
+        document.getElementById('questionnaire-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita o envio padrão do formulário
+
+            // Verifica se o usuário já respondeu hoje
+            if (hasAnsweredToday()) {
+                alert("Você já respondeu o questionário hoje.");
+                return; // Impede o envio
+            }
+
+            // Se o usuário não respondeu hoje, prossegue com o envio
             let formData = {};
             for (let i = 1; i <= 10; i++) {
                 let rating = document.getElementById(`rating${i}`);
@@ -164,9 +187,19 @@
                 }
             }
 
-            console.log(formData); // Aqui você pode enviar o formData para um backend ou processar de outra forma.
-            alert('Respostas enviadas! Confira o console.');
+            // Salva as respostas no LocalStorage
+            let storedResponses = JSON.parse(localStorage.getItem('userResponses')) || [];
+            storedResponses.push(formData);
+            localStorage.setItem('userResponses', JSON.stringify(storedResponses));
+
+            // Armazena a data de hoje como a última resposta
+            const today = formatDate(new Date());
+            localStorage.setItem('lastResponseDate', today);
+
+            console.log(formData); // Verifique as respostas no console
+            alert('Respostas enviadas e armazenadas! Caso queira mudar alguma resposta, chamar o supervisor.');
         });
     </script>
+
 </body>
 </html>
